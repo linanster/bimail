@@ -12,10 +12,10 @@ db_user = 'root'
 db_passwd = 'GEMysql20200'
 db_name = 'GE'
 
-FILENAME_EXCEL = 'result_excel.xlsx'
-FILENAME_TXT_PREVIEW = 'result_txt_preview.txt'
-FILENAME_TXT_TABLE_DEVICE = 'result_txt_table_device.txt'
-FILENAME_TXT_TABLE_DEVICETYPEFORMAT = 'result_txt_table_devicetypeformat.txt'
+FILENAME_EXCEL = './data/data_excel.xlsx'
+FILENAME_TXT_PREVIEW = './data/data_txt_preview.txt'
+FILENAME_TXT_TABLE_DEVICE = './data/data_txt_table_device.txt'
+FILENAME_TXT_TABLE_DEVICETYPEFORMAT = './data/data_txt_table_devicetypeformat.txt'
 
 def create_db_conn():
     try:
