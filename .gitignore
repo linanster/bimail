@@ -1,0 +1,7 @@
+**/*.py[cdo]
+**/*.bak
+**/*.swp
+**/*.sqlite3
+**/*.sqlite
+**/__pycache__
+venv
