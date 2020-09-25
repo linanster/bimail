@@ -1,3 +1,6 @@
+#! /usr/bin/env python3
+# coding:utf8
+#
 import os
 import sys
 import openpyxl
@@ -13,9 +16,9 @@ db_passwd = 'GEMysql20200'
 db_name = 'GE'
 
 FILENAME_EXCEL = './data/data_excel.xlsx'
-FILENAME_TXT_PREVIEW = './data/data_txt_preview.txt'
-FILENAME_TXT_TABLE_DEVICE = './data/data_txt_table_device.txt'
-FILENAME_TXT_TABLE_DEVICETYPEFORMAT = './data/data_txt_table_devicetypeformat.txt'
+FILENAME_TXT_PREVIEW = './data/overview.txt'
+FILENAME_TXT_TABLE_DEVICE = './data/table_device.txt'
+FILENAME_TXT_TABLE_DEVICETYPEFORMAT = './data/table_devicetypeformat.txt'
 
 def create_db_conn():
     try:
@@ -193,16 +196,19 @@ def write_data_txt():
         file.writelines('== 3. Device_Produced Table ==\n')
         file.write(tb_deviceproduced.get_string())
         file.writelines('\n\n')
+        file.writelines('== 4.1 Device Table (total) ==\n')
+        file.write(tb_device_total.get_string())
 
     with open(FILENAME_TXT_TABLE_DEVICE, 'w') as file:
-        file.writelines('== Device Table ==\n')
-        file.write(tb_device_total.get_string())
-        file.writelines('\n')
+        # file.writelines('== 4. Device Table ==\n')
+        # file.write(tb_device_total.get_string())
+        # file.writelines('\n')
+        file.writelines('== 4.2 Device Table (aggregated by type) ==\n')
         file.write(tb_device_agg_by_type.get_string())
         file.writelines('\n')
 
     with open(FILENAME_TXT_TABLE_DEVICETYPEFORMAT, 'w') as file:
-        file.writelines('== Device_Type_Format Table ==\n')
+        file.writelines('== 5. Device_Type_Format Table ==\n')
         file.write(tb_devicetypeformat.get_string())
         file.writelines('\n')
     print('==write into txt==')
