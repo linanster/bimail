@@ -60,7 +60,8 @@ def write_sheet(sheet, heads, datass, row_start=1):
 # sql query patterns
 sql_query_table_summary = 'select * from GE.summary order by statistics_time desc limit 5;'
 sql_query_table_active = 'select * from GE.active order by statistics_time desc limit 5;'
-sql_query_table_deviceproduced = 'select created_time,sum(produced_count) as produced_count from GE.device_produced group by created_time order by created_time desc limit 5;'
+# sql_query_table_deviceproduced = 'select created_time,sum(produced_count) as produced_count from GE.device_produced group by created_time order by created_time desc limit 5;'
+sql_query_table_deviceproduced = 'select date(created_time) as produced_date,sum(produced_count) as produced_count from GE.device_produced group by produced_date order by produced_date desc limit 5;'
 sql_query_table_device_total = 'select count(appliance_id) as "total" from GE.device;'
 sql_query_table_device_agg_by_type = 'select device_type, count(appliance_id) as "count" from GE.device group by device_type order by count desc;'
 sql_query_table_devicetypeformat = 'select * from GE.device_type_format;'
