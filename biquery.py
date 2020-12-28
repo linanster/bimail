@@ -17,8 +17,9 @@ db_name = 'GE'
 
 FILENAME_EXCEL = './data/data_excel.xlsx'
 FILENAME_TXT_PREVIEW = './data/overview.txt'
-FILENAME_TXT_TABLE_DEVICE = './data/table_device.txt'
-FILENAME_TXT_TABLE_DEVICETYPEFORMAT = './data/table_devicetypeformat.txt'
+FILENAME_TXT_TABLE_DEVICE = './data/device.txt'
+FILENAME_TXT_TABLE_DEVICETYPEFORMAT = './data/device_type_format.txt'
+FILENAME_TXT_TABLE_CBYGE_DEVICES_COMMISSIONED = './data/cbyge_devices_commissioned.txt'
 
 def create_db_conn():
     try:
@@ -58,13 +59,16 @@ def write_sheet(sheet, heads, datass, row_start=1):
             sheet.cell(row, col+1).value = item
         
 # sql query patterns
-sql_query_table_summary = 'select * from GE.summary order by statistics_time desc limit 5;'
+# sql_query_table_summary = 'select * from GE.summary order by statistics_time desc limit 5;'
+sql_query_table_summary = 'select ID,STATISTICS_TIME,TOTAL_USER,TOTAL_AVS_USER,TOTAL_GVS_USER,TOTAL_WWA_DEVICE,TOTAL_WWG_DEVICE,TOTAL_ACTIVATED,TOTAL_UN_ACTIVATED from GE.summary order by statistics_time desc limit 5;'
 sql_query_table_active = 'select * from GE.active order by statistics_time desc limit 5;'
-# sql_query_table_deviceproduced = 'select created_time,sum(produced_count) as produced_count from GE.device_produced group by created_time order by created_time desc limit 5;'
 sql_query_table_deviceproduced = 'select date(created_time) as produced_date,sum(produced_count) as produced_count from GE.device_produced group by produced_date order by produced_date desc limit 5;'
 sql_query_table_device_total = 'select count(appliance_id) as "total" from GE.device;'
 sql_query_table_device_agg_by_type = 'select device_type, count(appliance_id) as "count" from GE.device group by device_type order by count desc;'
 sql_query_table_devicetypeformat = 'select * from GE.device_type_format;'
+# add 12/28
+sql_query_table_cbyge_devices_commisioned_agg = 'select statistics_time,sum(count) as devices_commissioned from GE.cbyge_devices_commissioned group by statistics_time order by statistics_time desc limit 5;'
+sql_query_table_cbyge_devices_commissioned_latest = 'select * from cbyge_devices_commissioned where statistics_time=(select statistics_time from cbyge_devices_commissioned order by statistics_time desc limit 1);'
 
 heads_summary = None
 datas_summary = None
@@ -78,6 +82,10 @@ heads_device_agg_by_type = None
 datas_device_agg_by_type = None
 heads_devicetypeformat = None
 datas_devicetypeformat = None
+heads_cbyge_devices_commissioned_agg_sum = None
+datas_cbyge_devices_commissioned_agg_sum = None
+heads_cbyge_devices_commissioned_latest = None
+datas_cbyge_devices_commissioned_latest = None
 
 
 def query_db_data(conn):
@@ -93,6 +101,10 @@ def query_db_data(conn):
     global datas_device_agg_by_type
     global heads_devicetypeformat
     global datas_devicetypeformat
+    global heads_cbyge_devices_commissioned_agg_sum
+    global datas_cbyge_devices_commissioned_agg_sum
+    global heads_cbyge_devices_commissioned_latest
+    global datas_cbyge_devices_commissioned_latest
     
     cursor = conn.cursor()
     
@@ -133,6 +145,16 @@ def query_db_data(conn):
     # print(heads_devicetypeformat)
     # print(datas_devicetypeformat)
 
+    cursor.execute(sql_query_table_cbyge_devices_commisioned_agg)
+    heads_cbyge_devices_commissioned_agg_sum = get_table_heads(cursor.description)
+    datas_cbyge_devices_commissioned_agg_sum =  cursor.fetchall()
+    # print(heads_cbyge_devices_commissioned_agg_sum)
+    # print(datas_cbyge_devices_commissioned_agg_sum)
+
+    cursor.execute(sql_query_table_cbyge_devices_commissioned_latest)
+    heads_cbyge_devices_commissioned_latest = get_table_heads(cursor.description)
+    datas_cbyge_devices_commissioned_latest =  cursor.fetchall()
+
     print('==query db data==')
 
 
@@ -161,6 +183,8 @@ def write_data_txt():
     tb_device_total = pt.PrettyTable(field_names=heads_device_total)
     tb_device_agg_by_type = pt.PrettyTable(field_names=heads_device_agg_by_type)
     tb_devicetypeformat = pt.PrettyTable(field_names=heads_devicetypeformat)
+    tb_devicecommissioned_agg = pt.PrettyTable(field_names=heads_cbyge_devices_commissioned_agg_sum)
+    tb_devicecommissioned_latest = pt.PrettyTable(field_names=heads_cbyge_devices_commissioned_latest)
     
     for data in datas_summary:
         tb_summary.add_row(data)
@@ -180,38 +204,51 @@ def write_data_txt():
     for data in datas_devicetypeformat:
         tb_devicetypeformat.add_row(data)
 
+    for data in datas_cbyge_devices_commissioned_agg_sum:
+        tb_devicecommissioned_agg.add_row(data)
+
+    for data in datas_cbyge_devices_commissioned_latest:
+        tb_devicecommissioned_latest.add_row(data)
     # print(tb_summary)
     # print(tb_active)
     # print(tb_deviceproduced)
     # print(tb_device_total)
     # print(tb_device_agg_by_type)
     # print(tb_devicetypeformat)
+    # print(tb_devicecommissioned)
     
     with open(FILENAME_TXT_PREVIEW, 'w') as file:
-        file.writelines('== 1. Summary Table ==\n')
+        file.writelines('== 1. Summary Table (daily update) ==\n')
         file.write(tb_summary.get_string())
         file.writelines('\n\n')
-        file.writelines('== 2. Active Table ==\n')
+        file.writelines('== 2. Active Table (daily update) ==\n')
         file.write(tb_active.get_string())
         file.writelines('\n\n')
-        file.writelines('== 3. Device_Produced Table ==\n')
+        file.writelines('== 3 Device_Produced Table (daily update) ==\n')
         file.write(tb_deviceproduced.get_string())
         file.writelines('\n\n')
-        file.writelines('== 4.1 Device Table (total) ==\n')
+        file.writelines('== 4 Cbyge_Devices_Commissioned Table (weekly update) ==\n')
+        file.write(tb_devicecommissioned_agg.get_string())
+        file.writelines('\n\n')
+        file.writelines('== 5 Device Table ==\n')
         file.write(tb_device_total.get_string())
 
     with open(FILENAME_TXT_TABLE_DEVICE, 'w') as file:
-        # file.writelines('== 4. Device Table ==\n')
-        # file.write(tb_device_total.get_string())
-        # file.writelines('\n')
-        file.writelines('== 4.2 Device Table (aggregated by type) ==\n')
+        file.writelines('== Device Table (aggregated by type) ==\n')
         file.write(tb_device_agg_by_type.get_string())
         file.writelines('\n')
 
     with open(FILENAME_TXT_TABLE_DEVICETYPEFORMAT, 'w') as file:
-        file.writelines('== 5. Device_Type_Format Table ==\n')
+        file.writelines('== Device_Type_Format Table ==\n')
         file.write(tb_devicetypeformat.get_string())
         file.writelines('\n')
+
+    with open(FILENAME_TXT_TABLE_CBYGE_DEVICES_COMMISSIONED, 'w') as file:
+        file.writelines('== Device_Type_Format Table (aggregated by type) ==\n')
+        file.writelines('== This table is updated weekly by design ==\n')
+        file.write(tb_devicecommissioned_latest.get_string())
+        file.writelines('\n')
+
     print('==write into txt==')
 
 def query_data():
