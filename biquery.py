@@ -224,13 +224,13 @@ def write_data_txt():
         file.writelines('== 2. Active Table (daily update) ==\n')
         file.write(tb_active.get_string())
         file.writelines('\n\n')
-        file.writelines('== 3 Device_Produced Table (daily update) ==\n')
+        file.writelines('== 3. Device_Produced Table (daily update) ==\n')
         file.write(tb_deviceproduced.get_string())
         file.writelines('\n\n')
-        file.writelines('== 4 Cbyge_Devices_Commissioned Table (weekly update) ==\n')
+        file.writelines('== 4. Cbyge_Devices_Commissioned Table (weekly update) ==\n')
         file.write(tb_devicecommissioned_agg.get_string())
         file.writelines('\n\n')
-        file.writelines('== 5 Device Table ==\n')
+        file.writelines('== 5. Device Table ==\n')
         file.write(tb_device_total.get_string())
 
     with open(FILENAME_TXT_TABLE_DEVICE, 'w') as file:
